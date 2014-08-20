@@ -60,15 +60,25 @@ Limitation:
 7. Stormflash Node packages
 
 
-RoadMap:
-   a. SDN Capability  ( SDN Controllers - Floodlight, OpenDayLight  &  Openflow switches)
-   b. Firewall 
+*RoadMap:
+---
+    a. SDN Capability  ( SDN Controllers - Floodlight, OpenDayLight  &  Openflow switches)
+    
+    b. Firewall 
+    
    c. VLAN
+   
    d. WAN Protocols 
+   
    e. MPLS
+   
    f. IPS/IDS
+   
    g. KVM Virtualization
+   
    h. Opensource Routers distribution support - PFSense , IPCop, openWRT, etc.
+   
    i. Various Servers  (web, ftp, dns, dhcp etc) support.
+   
    UI support.
 
