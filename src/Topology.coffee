@@ -90,13 +90,18 @@ class TopologyData extends StormData
                     required: true            
                     properties:                
                         type: {type:"string", required:true}
-                        switch: {type:"string", required:false}
+                        switches:
+                            type : "array"                     
+                            required: false
+                            items:
+                                type : "object"
+                                required: false
                         connected_nodes:
                             type: "array"
-                            required: true
+                            required: false
                             items:
                                 type: "object"
-                                required: true                                    
+                                required: false
                                 properties:
                                     name:{"type":"string", "required":true}
 
@@ -279,7 +284,7 @@ class Topology
                 return true
 
     #Create Links  
-    createLinks :(cb)->
+    createNodeLinks :(cb)->
         #travel each node and travel each interface 
         #get bridgename and vethname
         # call the api to add virtual interface to the switch
@@ -299,11 +304,30 @@ class Topology
 
         ,(err) =>
             if err
-                util.log "createLinks error occured " + err
+                util.log "createNodeLinks error occured " + err
                 cb(false)
             else
-                util.log "createLinks  all are processed "
+                util.log "createNodeLinks  all are processed "
                 cb (true)
+
+    #createSwitchLinks
+    createSwitchLinks :(cb)->
+        #travel each switch object and call connect tapinterfaces        
+        async.each @switchobj, (sw,callback) =>
+            util.log "create a interconnection  switch Link"            
+            sw.connectTapInterfaces (res)=>
+                console.log "result" , res
+            callback()    
+
+        ,(err) =>
+            if err
+                util.log "createNodeLinks error occured " + err
+                cb(false)
+            else
+                util.log "createNodeLinks  all are processed "
+                cb (true)
+
+
 
 
 
@@ -329,12 +353,32 @@ class Topology
         for val in @tdata.data.links                                    
             x = 0
             if val.type is "lan"
-                temp = ipmgr.getFreeLanSubnet()                 
-                for n in  val.connected_nodes
-                    obj = @getNodeObjbyName(n.name)
-                    if obj?
-                        startaddress = temp.iparray[x++]                        
-                        obj.addLanInterface(val.switch, startaddress, temp.subnetMask, temp.iparray[0], val.config)
+                temp = ipmgr.getFreeLanSubnet()  
+                for sw in val.switches         
+                    #switch object
+                    console.log "processing the switch ",sw.name
+                    swobj = @getSwitchObjbyName(sw.name)
+
+                    for n in  sw.connected_nodes
+                        obj = @getNodeObjbyName(n.name)
+                        if obj?
+                            startaddress = temp.iparray[x++]                        
+                            obj.addLanInterface(sw.name, startaddress, temp.subnetMask, temp.iparray[0], sw.config)
+                    if sw.connected_switches?
+                        for n in  sw.connected_switches 
+                            obj = @getSwitchObjbyName(n.name)
+                            if obj?                            
+                                srctaplink = "#{sw.name}_#{n.name}"
+                                dsttaplink = "#{n.name}_#{sw.name}"                                                        
+                                #swobj.createTapInterfaces srctaplink,dsttaplink
+                                exec = require('child_process').exec
+                                command = "ip link add #{srctaplink} type veth peer name #{dsttaplink}"
+                                exec command, (error, stdout, stderr) =>
+
+                                #console.log "createTapinterfaces completed", result
+                                obj.addTapInterface(dsttaplink) 
+                                swobj.addTapInterface(srctaplink)  
+
             if val.type is "wan"
                 temp = ipmgr.getFreeWanSubnet()
                 #swname = "#{val.type}_#{val.connected_nodes[0].name}_#{val.connected_nodes[1].name}"
@@ -362,16 +406,20 @@ class Topology
             @createNodes (res)=>
                 util.log "topologycreation status" + res
                 #Check the sttatus and do provision
-                @createLinks (res)=>
-                    util.log "create links result " + res
-        
-                    @startSwitches (res)=>
-                        util.log "start switches result "  + res
-                        util.log "Ready for provision"
+                @createNodeLinks (res)=>
+                    util.log "create Nodelinks result " + res
+
+                    @createSwitchLinks (res)=>
+                        util.log "create Switchlinks result " + res
+
+                        @startSwitches (res)=>
+                            util.log "start switches result "  + res
+
+                            util.log "Topology creation completed"
         
                         #provision
-                        @provisionNodes (res)=>
-                            util.log "provision" + res
+                        #@provisionNodes (res)=>
+                        #    util.log "provision" + res
 
 
 

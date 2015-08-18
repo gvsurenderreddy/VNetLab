@@ -121,6 +121,13 @@ class SwitchBuilder
 				"status" : sdata.data.status					
 				"reason" : sdata.data.reason if sdata.data?.reason?
 
+
+	CreateTapInterfaces : (ifname1,ifname2) ->		
+		bridge = brctl
+		bridge.createTapPeers ifname1, ifname2, (result) =>
+			util.log "createTapPeers " + result			
+			return result 
+
 	start : (data, callback) ->
 		sdata = @registry.get data
 		return callback new Error "Switch details not found in DB" unless sdata?

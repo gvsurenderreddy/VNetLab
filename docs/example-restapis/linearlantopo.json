@@ -1,0 +1,21 @@
+{ 
+  "name":"testtopology", 
+  "switches":[
+      { "name":"lsw1","type":"lan","make":"bridge","ports":8 },
+      { "name":"lsw2","type":"lan", "make":"bridge","ports":8}
+  ],  
+  "nodes":[
+    { "name":"node1"},
+    { "name":"node2"}
+  ],
+  "links":[
+    {
+      "type":"lan",
+      "switches":[
+      { "name":"lsw1","connected_nodes":[{"name":"node1"}],"connected_switches":[{"name":"lsw2"}] },
+      { "name":"lsw2", "connected_nodes":[{"name":"node2"}] }
+      ]
+    }
+    
+  ]  
+}

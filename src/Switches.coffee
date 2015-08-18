@@ -10,6 +10,7 @@ class switches
         @config.make ?= "bridge"
         @status = {}
         @statistics = {}
+        @tapifs = []
         util.log " switch config " + JSON.stringify @config
         
     create: (callback)->
@@ -44,6 +45,25 @@ class switches
         switchctrl.addInterface @uuid, val, (res) =>
             console.log res
             callback res    
+
+    createTapInterfaces:(ifname1,ifname2)->
+        console.log "inside createTapInterfaces function "
+        result = switchctrl.CreateTapInterfaces ifname1, ifname2
+        console.log "output of switchctrl.CreateTapInterfaces ", result
+        return result
+    
+    addTapInterface:(ifname)->
+        @tapifs.push ifname if ifname?
+        console.log "inside addTap Interfaces",ifname
+        return
+
+    connectTapInterfaces:(callback)->
+        for tapif in @tapifs
+            #Async model to be introduced
+            @connect tapif,(result)=>                
+                callback result
+        callback
+
 
     switchStatus:()->   
         #Todo be done    

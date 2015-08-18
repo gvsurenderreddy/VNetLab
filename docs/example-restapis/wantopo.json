@@ -1,0 +1,14 @@
+{ 
+  "name":"testtopology", 
+  "switches":[],  
+  "nodes":[
+    { "name":"node1"},
+    { "name":"node2"}
+  ],
+  "links":[
+    {
+      "type":"wan",
+       "connected_nodes":[{"name":"node1"},{"name":"node2"}] 
+    }
+  ]
+}

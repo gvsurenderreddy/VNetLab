@@ -41,6 +41,11 @@ class BridgeControl
 			command = "brctl delbr #{bridgename}"
 			@execute command,(result) =>
 				callback result
+	createTapPeers : (ifname1, ifname2, callback) ->
+		command = "ip link add #{ifname1} type veth peer name #{ifname2}"
+		#ip link add lansw1_lansw2 type veth peer name lansw2_lansw1
+		@execute command,(result) =>
+			callback result
 
 	getStatus: (bridgename, callback) ->
 		command = "brctl show #{bridgename}"
