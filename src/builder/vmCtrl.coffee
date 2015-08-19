@@ -8,7 +8,7 @@ util = require('util')
 class VmRegistry extends StormRegistry
     constructor: (filename) ->
         @on 'load', (key,val) ->
-            console.log "restoring #{key} with:" + val
+            #console.log "restoring #{key} with:" + val
             entry = new VmData key,val
             if entry?
                 entry.saved = true
@@ -72,10 +72,10 @@ class VmData extends StormData
 class VmBuilder
     @records = []
     constructor: () ->		
-        @registry = new VmRegistry "/tmp/vm.db"
+        @registry = new VmRegistry #"/tmp/vm.db"
     		
         @registry.on 'load',(key,val) ->
-            util.log "Loading key #{key} with val #{val}"	
+            #util.log "Loading key #{key} with val #{val}"	
 
     list : (callback) ->
         callback @registry.list()

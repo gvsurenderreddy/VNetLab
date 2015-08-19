@@ -182,7 +182,8 @@ class Topology
             sw.start (result) =>   
                 #Todo : Result vaue to be checked.
                 log.info "start switch result " + JSON.stringify result
-                callback()
+            #this callback place to be relooked
+            callback()
         ,(err) =>
             if err
                 log.error "error occured " + err
@@ -325,10 +326,10 @@ class Topology
 
         ,(err) =>
             if err
-                log.error "createNodeLinks error occured " + err
+                log.error "createSwitchLinks error occured " + err
                 cb(false)
             else
-                log.info "createNodeLinks  all are processed "
+                log.info "createSwitchLinks  all are processed "
                 cb (true)
 
 
@@ -453,7 +454,8 @@ class Topology
 
 class TopologyMaster
     constructor :(filename) ->
-        @registry = new TopologyRegistry filename        
+        @registry = new TopologyRegistry filename if filename?
+        @registry = new TopologyRegistry unless filename?
         @topologyObj = {}
         @sysconfig = {}
         log.info "TopologyMaster - constructor - TopologyMaster object is created"  
@@ -596,4 +598,5 @@ class TopologyMaster
 
 
 #============================================================================================================
-module.exports =  new TopologyMaster '/tmp/topology.db'
+#module.exports =  new TopologyMaster '/tmp/topology.db'
+module.exports =  new TopologyMaster

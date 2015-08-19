@@ -8,7 +8,7 @@ StormRegistry = require('stormregistry')
 class SwitchRegistry extends StormRegistry
     constructor: (filename) ->
         @on 'load', (key,val) ->
-            console.log "restoring #{key} with:" + val
+            #console.log "restoring #{key} with:" + val
             entry = new SwitchData key,val
             if entry?
                 entry.saved = true
@@ -44,7 +44,7 @@ class SwitchData extends StormData
         type: "object"        
         properties:                        
             name: {type:"string", required:true}            
-            ports: { type: "integer", required: true}
+            ports: { type: "integer", required: false}
             type:{ type: "string", required: true}
             make: { type: "string", required: false}
            	
@@ -57,10 +57,10 @@ class SwitchBuilder
 	@records = []
 	bridge = null
 	constructor: () ->		
-		@registry = new SwitchRegistry "/tmp/switches.db"
+		@registry = new SwitchRegistry #"/tmp/switches.db"
 		
 		@registry.on 'load',(key,val) ->
-			util.log "Loading key #{key} with val #{val}"	
+			#util.log "Loading key #{key} with val #{val}"	
 
 	list : (callback) ->
         return callback @registry.list()
@@ -74,7 +74,7 @@ class SwitchBuilder
 			sdata = new SwitchData(null, data )
 		catch err
 			util.log "invalid schema" + err
-			return callback new Error "Invalid Input "
+			return callback new Error "invalid schema"
 		finally			
 
 			if data.make is "bridge"
