@@ -1,0 +1,35 @@
+{ 
+  "name":"testtopology", 
+  "switches":[
+      { "name":"asw1","type":"lan" },
+      { "name":"asw2","type":"lan" },
+      { "name":"bsw1","type":"lan"}
+  ],  
+  "nodes":[
+    { "name":"a1"},
+    { "name":"a2"},
+    { "name":"r1"},
+    { "name":"r2"},
+    { "name":"b1"},
+    { "name":"b2"}
+  ],
+  "links":[
+    {
+      "type":"lan",
+      "switches":[
+      { "name":"asw1","connected_nodes":[{"name":"a1"},{"name":"r1"}],"connected_switches":[{"name":"asw2"}] },
+      { "name":"asw2", "connected_nodes":[{"name":"a2"}] }
+      ]
+    },
+    {
+      "type":"lan",
+      "switches":[
+      { "name":"bsw1","connected_nodes":[{"name":"b1"},{"name":"b2"},{"name":"r2"}] }      
+      ]
+    },
+    {
+      "type":"wan",      
+      "connected_nodes":[{"name":"r1"},{"name":"r2"}]      
+    }
+  ]  
+}

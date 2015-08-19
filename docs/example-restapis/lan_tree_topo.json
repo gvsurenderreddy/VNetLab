@@ -1,0 +1,33 @@
+{ 
+  "name":"testtopology", 
+  "switches":[
+      { "name":"sw1","type":"lan" },
+      { "name":"sw2","type":"lan"},
+      { "name":"sw3","type":"lan"},
+      { "name":"sw4","type":"lan"},
+      { "name":"sw5","type":"lan"},
+      { "name":"sw6","type":"lan"},
+      { "name":"sw7","type":"lan"},
+      { "name":"sw8","type":"lan"}
+  ],  
+  "nodes":[
+    { "name":"n1"},
+    { "name":"n2"},
+    { "name":"n3"},
+    { "name":"n4"}
+  ],
+  "links":[
+    {
+      "type":"lan",
+      "switches":[
+      { "name":"sw1","connected_nodes":[{"name":"n1"}],"connected_switches":[{"name":"sw5"}] },
+      { "name":"sw2","connected_nodes":[{"name":"n2"}],"connected_switches":[{"name":"sw5"}] },
+      { "name":"sw3","connected_nodes":[{"name":"n3"}],"connected_switches":[{"name":"sw6"}] },
+      { "name":"sw4","connected_nodes":[{"name":"n4"}],"connected_switches":[{"name":"sw7"}] },
+      { "name":"sw5","connected_nodes":[],"connected_switches":[{"name":"sw7"}] },
+      { "name":"sw6","connected_nodes":[],"connected_switches":[{"name":"sw7"}] }      
+      ]
+    }
+    
+  ]  
+}

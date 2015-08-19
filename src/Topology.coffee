@@ -72,9 +72,7 @@ class TopologyData extends StormData
                     required: true
                     properties:
                         name: {type:"string", required:false}            
-                        type:  {type:"string", required:false}            
-                        ports: {type:"integer", required:false}
-                        make: {type:"string", required:true}
+                        type:  {type:"string", required:false}                                                            
             nodes:
                 type: "array"
                 items:
@@ -346,6 +344,7 @@ class Topology
         ipmgr = new IPManager(@sysconfig.wansubnet,@sysconfig.lansubnet,@sysconfig.mgmtsubnet)
         if @tdata.data.switches?            
             for sw in @tdata.data.switches   
+                sw.make = @sysconfig.switchtype
                 obj = new switches(sw)
                 @switchobj.push obj
 
@@ -394,7 +393,7 @@ class Topology
                     name : swname
                     ports: 2
                     type : val.type
-#                   make : val.make 
+                    make : @sysconfig.switchtype
                 @switchobj.push obj
                 for n in  val.connected_nodes
                     console.log n.name

@@ -43,11 +43,9 @@ class SwitchData extends StormData
         name: "switch"
         type: "object"        
         properties:                        
-            name: {type:"string", required:true}            
-            ports: { type: "integer", required: false}
+            name: {type:"string", required:true}                       
             type:{ type: "string", required: true}
-            make: { type: "string", required: false}
-           	
+            make: { type: "string", required: false}           	
             
     constructor: (id, data) ->
         super id, data, Schema
@@ -77,10 +75,10 @@ class SwitchBuilder
 			return callback new Error "invalid schema"
 		finally			
 
-			if data.make is "bridge"
-				bridge  = brctl
-			else
+			if data.make is "openvswitch"
 				bridge  = ovs
+			else
+				bridge  = brctl
 
 			# if switch make is "bridge"
 			bridge.createBridge data.name, (result) =>
@@ -103,10 +101,10 @@ class SwitchBuilder
 		util.log "addInterface body is "+ JSON.stringify body
 		sdata = @registry.get data
 		return callback new Error "Switch details not found in DB" unless sdata?
-		if sdata.data.make is "bridge"
-			bridge  = brctl
-		else
+		if sdata.data.make is "openvswitch"
 			bridge  = ovs
+		else
+			bridge  = brctl
 
 		bridge.addInterface sdata.data.name, body.ifname, (result) =>
 			util.log "addif" + result			
@@ -131,10 +129,10 @@ class SwitchBuilder
 	start : (data, callback) ->
 		sdata = @registry.get data
 		return callback new Error "Switch details not found in DB" unless sdata?
-		if sdata.data.make is "bridge"
-			bridge  = brctl
-		else
+		if sdata.data.make is "openvswitch"
 			bridge  = ovs
+		else
+			bridge  = brctl
 
 		bridge.enableBridge sdata.data.name, (result) =>
 			util.log "enableBridge" + result			
@@ -153,10 +151,10 @@ class SwitchBuilder
 		sdata = @registry.get data
 		return callback new Error "Switch details not found in DB" unless sdata?
 
-		if sdata.data.make is "bridge"
-			bridge  = brctl
-		else
+		if sdata.data.make is "openvswitch"
 			bridge  = ovs
+		else
+			bridge  = brctl
 
 		bridge.disableBridge sdata.data.name, (result) =>
 			util.log "disableBridge" + result			
@@ -174,10 +172,10 @@ class SwitchBuilder
 	del: (data,callback) -> 	 
 		#Get the Switchname from db
 		sdata = @registry.get data
-		if sdata.data.make is "bridge"
-			bridge  = brctl
-		else
+		if sdata.data.make is "openvswitch"
 			bridge  = ovs
+		else
+			bridge  = brctl
 		return callback new Error "Switch details not found in DB" unless sdata?
 		bridge.deleteBridge sdata.data.name, (result) =>
 			util.log "deletBridge" + result
@@ -192,10 +190,10 @@ class SwitchBuilder
 		#Todo
 		sdata = @registry.get data
 		return callback new Error "Switch details not found in DB" unless sdata?
-		if sdata.data.make is "bridge"
-			bridge  = brctl
-		else
+		if sdata.data.make is "openvswitch"
 			bridge  = ovs
+		else
+			bridge  = brctl
 		bridge.getStatus sdata.data.name, (result) =>
 			util.log "getStatus" + result
 			sdata.data.status = result

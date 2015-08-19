@@ -38,7 +38,7 @@ log.info "VnetLab application starts..... "
 log.info "System Configuration ",config
 #log.debug, log.info, log.warn, log.notice,log.warning, log.critical, log.alert, log.emergency
 
-#check the system capability for choosen virtualization and mgmt ip stuff, switch utility details.
+#check the system capability to run vnetlab
 systemcheck = ()->
     log.info "performing system check"
 	log.debug "checking the lxc installation files"
@@ -56,20 +56,33 @@ topology = require('./Topology')
 topology.configure(config)
 
 topologyPost = (req,res,next)->   
-    util.log "Topology Post received body - ", req.body
+    log.info "REST API - POST /Topology received, body contents - ", req.body
     topology.create req.body, (result) =>
-        util.log "POST Topology result " + result 
+        log.info "POST /Topology result " + result 
+        res.send result        
+        next()
+
+topologyList = (req,res,next)->     
+    log.info "REST API - GET /Topology received "
+    topology.list (result) =>
+        log.info "REST API - GET /Topology result " + result
         res.send result        
         next()
 
 topologyGet = (req,res,next)->           
-    next()
-
-topologyStatusGet = (req,res,next)->   
-    next()
+    log.info "REST API - GET /Topology/:id received ", req.params.id
+    topology.get req.params.id, (result) =>
+        util.log "REST API - GET /Topology/id result " + result        
+        res.send result   
+        next()
 
 topologyDelete = (req,res,next)->  
-    next() 
+    log.info "REST API - DELETE /Topology/:id received - ",req.params.id
+    topology.del req.params.id, (result) =>
+        log.info "REST API - DELETE /Topology/:id result  " + result
+        res.send result   
+        next()
+ 
 
 #---------------------------------------------------------------------------------------#
 # REST Server routine starts here
@@ -82,8 +95,8 @@ server.use(restify.bodyParser());
 
 
 server.post '/Topology', topologyPost
-server.post '/Topology', topologyGet
-server.get '/Topology/:id/status', topologyStatusGet
+server.get '/Topology', topologyList
+server.get '/Topology/:id', topologyGet
 server.del '/Topology/:id', topologyDelete
 
 server.listen 5050,()->
