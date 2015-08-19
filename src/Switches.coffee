@@ -3,6 +3,11 @@ request = require('request-json');
 extend = require('util')._extend
 switchctrl = require('./builder/switchCtrl')
 
+log = require('./utils/logger').getLogger()
+log.info "Switches Logger test message"
+
+#global parameter
+#log = require('./app').log
 
 class switches    
     constructor: (sw)->                
@@ -11,17 +16,21 @@ class switches
         @status = {}
         @statistics = {}
         @tapifs = []
-        util.log " switch config " + JSON.stringify @config
+        log.info "Switches - constructor -  new switch object created " + JSON.stringify @config
         
     create: (callback)->
+        log.info "Switches -  creating a switch with config ", @config
         switchctrl.create @config, (res) =>
-            console.log "post switch response" +res    
+            #console.log "post switch response" +res    
+            log.info "Switches - switch creation result ", res
             @uuid = res.id 
             callback res
 
     del: (callback)->
+        log.info "Switches - deleting a switch ", @config
         switchctrl.del @uuid, (res) =>
-            console.log res
+            #console.log res
+            log.info "Switches -  switch  deletion result ", res
             callback res    
 
     get:()->
@@ -30,34 +39,41 @@ class switches
         "status":@status
         "statistics":@statistics
     stop:()->
+        log.info "Switches -   stoping a switch ", @config
         switchctrl.stop @uuid, (res) =>
-            console.log res
+            log.info "Switches - switch stop result ", res
+            #console.log res
             callback res                  
 
     start:()->
+        log.info "Switches -  starting a switch ", @config
         switchctrl.start @uuid, (res) =>
-            console.log res
+            log.info "Switches -   switch start result ", res
+            #console.log res
             callback res                  
 
     connect:(ifname,callback)->
         val =
             "ifname": ifname              
+        log.info "Switches -  connecting a interface  #{ifname} in switch #{@config.name}"
         switchctrl.addInterface @uuid, val, (res) =>
-            console.log res
+            log.info "Switches - connect-  interface  #{ifname} connection result ",res
+            #console.log res
             callback res    
 
     createTapInterfaces:(ifname1,ifname2)->
-        console.log "inside createTapInterfaces function "
+        log.info "Switches - createTapInterfaces - input  #{ifname1}   #{ifname2}"
         result = switchctrl.CreateTapInterfaces ifname1, ifname2
-        console.log "output of switchctrl.CreateTapInterfaces ", result
+        log.info "Switches - createTapInterfaces - result ",result
         return result
     
     addTapInterface:(ifname)->
         @tapifs.push ifname if ifname?
-        console.log "inside addTap Interfaces",ifname
+        log.info "Switches - addTapInterface - ifname ",ifname
         return
 
     connectTapInterfaces:(callback)->
+        log.info "Switches - connectTapInterfaces ...connecting the inter switch links"
         for tapif in @tapifs
             #Async model to be introduced
             @connect tapif,(result)=>                

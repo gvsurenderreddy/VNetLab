@@ -6,6 +6,13 @@ extend = require('util')._extend
 ip = require 'ip'
 async = require 'async'
 
+log = require('./utils/logger').getLogger()
+log.info "IPManager - Logger test message"
+
+#global parameter
+#config = require('./app').config
+#log = require('./app').log
+
 ##########################################################################################################
 #It works perfectly, even its not clean.
 # revisit later.
@@ -52,9 +59,7 @@ iplist = (address) ->
 ##########################################################################################################
 class IPManager
     constructor :(wan,lan,mgmt) ->
-        util.log "wan pool #{wan} "
-        util.log "lan pool #{lan} "
-        util.log "mgmt pool #{mgmt}"
+        log.info "IPManager starts with wan pool #{wan} lan pool #{lan} mgmt pool #{mgmt}"        
         @wansubnets = subnetting wan, 24, 30
         @lansubnets = subnetting lan, 24, 27
         @wanindex = 0
@@ -63,9 +68,9 @@ class IPManager
         @mgmtips = iplist(mgmt)
 
     listwansubnets:()->
-        util.log "wansubnets " + JSON.stringify @wansubnets
+        log.info " IPManager - listwansubnets " + JSON.stringify @wansubnets
     listlanubnets:()->
-        util.log "lansubnets " + JSON.stringify @lansubnets
+        log.info "IPManager - listlansubnets " + JSON.stringify @lansubnets
     getFreeWanSubnet:()->
         @wansubnets[@wanindex++]
     getFreeLanSubnet:()->

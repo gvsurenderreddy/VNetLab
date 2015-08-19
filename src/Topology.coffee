@@ -1,4 +1,3 @@
-
 StormRegistry = require 'stormregistry'
 StormData = require 'stormdata'
 util = require('util')
@@ -6,27 +5,29 @@ request = require('request-json');
 extend = require('util')._extend
 ip = require 'ip'
 async = require 'async'
+util = require 'util'
+
 
 IPManager = require('./IPManager')
 node = require('./Node')
 switches = require('./Switches')
 
-util = require 'util'
+
+#Log handler
+log = require('./utils/logger').getLogger()
+log.info "Topology Logger test message"
 
 
 ## Global IP Manager for  -- To be relooked the design
-MGMT_SUBNET = "10.0.3.0"
-WAN_SUBNET = "172.16.1.0"
-LAN_SUBNET = "10.10.10.0"
+#MGMT_SUBNET = "10.0.3.0"
+#WAN_SUBNET = "172.16.1.0"
+#LAN_SUBNET = "10.10.10.0"
 
-#Todo : 
-#Global MGMT_SUBNET  and WAN, LAN SUBNET per topology-  currently all 3 subnets are global.
-#ipmgr = new IPManager(WAN_SUBNET,LAN_SUBNET, MGMT_SUBNET)
 #============================================================================================================
 class TopologyRegistry extends StormRegistry
     constructor: (filename) ->
         @on 'load', (key,val) ->
-            util.log "restoring #{key} with:",val
+            log.debug "restoring #{key} with:",val
             entry = new TopologyData key,val
             if entry?
                 entry.saved = true
@@ -113,78 +114,81 @@ class Topology
 
     constructor :() ->        
         @config = {}
+        @sysconfig = {}
         @status = {}
         @statistics = {}        
         @switchobj = []
         @nodeobj =  []
         @linksobj = []
 
+    systemconfig:(config) ->
+        @sysconfig = extend {},config
     # Object Iterator functions... Async each is used in many place.. hence cannot be removed currently.
     # To be converted in to Hash model.
     getNodeObjbyName:(name) ->
-        util.log "getNodeObjbyName - input " + name
+        log.debug "getNodeObjbyName - input " + name
         for obj in @nodeobj
-            util.log "getNodeObjbyName - checking with " + obj.config.name
+            log.debug "getNodeObjbyName - checking with " + obj.config.name
             if obj.config.name is name
-                util.log "getNodeObjbyName found " + obj.config.name
+                log.debug "getNodeObjbyName found " + obj.config.name
                 return obj
-        util.log "getNodeObjbyName not found " + name
+        log.debug "getNodeObjbyName not found " + name
         return null
 
     getSwitchObjbyName:(name) ->
-        util.log "inpjut for check " + name
+        log.debug "inpjut for check " + name
         for obj in @switchobj
-            util.log "getSwitchObjbyName iteratkon " + obj.config.name
+            log.debug "getSwitchObjbyName iteratkon " + obj.config.name
             if obj.config.name is name
-                util.log "getSwitchObjbyName found " + obj.config.name
+                log.debug "getSwitchObjbyName found " + obj.config.name
                 return obj
         return null
 
     getSwitchObjbyUUID:(uuid) ->
         for obj in @switchobj
-            util.log "getSwitchObjbyUUID " + obj.uuid
+            log.debug "getSwitchObjbyUUID " + obj.uuid
             if obj.uuid is uuid
-                util.log "getSwitchObjbyUUID found " + obj.uuid
+                log.debug "getSwitchObjbyUUID found " + obj.uuid
                 return obj
         return null
 
     getNodeObjbyUUID:(uuid) ->
         for obj in @nodeobj
-            util.log "getNodeObjbyUUID" + obj.uuid
+            log.debug "getNodeObjbyUUID" + obj.uuid
             if obj.uuid is uuid
-                util.log "getNodeObjbyUUID found " + obj.config.uuid
+                log.debug "getNodeObjbyUUID found " + obj.config.uuid
                 return obj
         return null
 
 
     createSwitches :(cb)->
         async.each @switchobj, (sw,callback) =>
-            util.log "create switch "
+            log.info "create switch "
             sw.create (result) =>   
                 #Todo:  Result value - Error Check to be done.
-                util.log "create switch result " + JSON.stringify result
+                log.debug "create switch result " + JSON.stringify result
                 callback()
         ,(err) =>
             if err
-                util.log "Error occured on createswitches function " + err
+                log.error "Error occured on createswitches function " + err
                 cb(false)
             else
-                util.log "createswitches completed "
+                log.info "createswitches completed "
                 cb (true)
 
     startSwitches :(cb)->
         async.each @switchobj, (sw,callback) =>
-            util.log "start switch "
+            log.info "start switch "
             sw.start (result) =>   
                 #Todo : Result vaue to be checked.
-                util.log "start switch result " + JSON.stringify result
+                log.info "start switch result " + JSON.stringify result
                 callback()
         ,(err) =>
             if err
-                util.log "error occured " + err
+                log.error "error occured " + err
                 cb(false)
             else
-                util.log "startswitches all are processed "
+                log.info "startswitches all are processed "
                 cb (true)
 
     #create and start the nodes
@@ -199,10 +203,10 @@ class Topology
 
     createNodes :(cb)->    
         async.each @nodeobj, (n,callback) =>
-            util.log "createing a node "
+            log.info "createing a node "
             
             n.create (result) =>   
-                console.log "create node result " ,result
+                log.info "create node result " ,result
                 #check continuosly till we get the creation status value 
                 create = false
                 async.until(
@@ -210,77 +214,77 @@ class Topology
                         return create
                     (repeat)->
                         n.getstatus (result)=>
-                            util.log "node creation #{n.uuid} status " + result.data.status
+                            log.info "node creation #{n.uuid} status " + result.data.status
                             unless result.data.status is "creation-in-progress"
                                 create = true
                                 n.start (result)=>                    
-                                    util.log "node start #{n.uuid} result " + result
+                                    log.info "node start #{n.uuid} result " + result
                                     return
                             setTimeout(repeat, 30000);
                     (err)->                        
-                        util.log "createNodes completed execution"
+                        log.info "createNodes completed execution"
                         callback(err)                        
                 )
         ,(err) =>
             if err
-                util.log "createNodes error occured " + err
+                log.error "createNodes error occured " + err
                 cb(false)
             else
-                util.log "createNodes all are processed "
+                log.info "createNodes all are processed "
                 cb (true)
 
 
     provisionNodes :(cb)->
         async.each @nodeobj, (n,callback) =>
-            util.log "provisioning a node #{n.uuid}"
+            log.info "provisioning a node #{n.uuid}"
             n.provision (result) =>   
                 #Todo : Result to be checked.
-                util.log "provision node #{n.uuid} result  " + result
+                log.info "provision node #{n.uuid} result  " + result
                 callback()
         ,(err) =>
             if err
-                util.log "ProvisionNodes error occured " + err
+                log.error "ProvisionNodes error occured " + err
                 cb(false)
             else
-                util.log "provisionNodes all are processed "
+                log.info "provisionNodes all are processed "
                 cb (true)
 
     destroyNodes :()->
         #@tmparray = []
         #@destroySwithes()
-        util.log "destroying the Nodes"
+        log.info "destroying the Nodes"
 
         async.each @nodeobj, (n,callback) =>
-            util.log "delete node #{n.uuid}"
+            log.info "delete node #{n.uuid}"
             n.del (result) =>                
                 #@tmparray.push result
                 #Todo: result to be checked
                 callback()
         ,(err) =>
             if err
-                util.log  "destroy nodes error occured " + err
+                log.error  "destroy nodes error occured " + err
                 return false
             else
-                util.log "destroyNodes all are processed " + @tmparray
+                log.info "destroyNodes all are processed " + @tmparray
                 return true
     
     destroySwitches :()->
         #@tmparray = []
         #@destroySwithes()
-        util.log "destroying the Switches"
+        log.info "destroying the Switches"
 
         async.each @switchobj, (n,callback) =>
-            util.log "delete switch #{n.uuid}"
+            log.info "delete switch #{n.uuid}"
             n.del (result) =>                
                 #Todo result to be checked
                 #@tmparray.push result
                 callback()
         ,(err) =>
             if err
-                util.log "Destroy switches error occured " + err
+                log.error "Destroy switches error occured " + err
                 return false
             else
-                util.log "Destroy Switches all are processed " + @tmparray
+                log.info "Destroy Switches all are processed " + @tmparray
                 return true
 
     #Create Links  
@@ -289,7 +293,7 @@ class Topology
         #get bridgename and vethname
         # call the api to add virtual interface to the switch
         async.each @nodeobj, (n,callback) =>
-            util.log "create a Link"
+            log.info "create a Link"
             #travelling each interface
 
             for ifmap in n.config.ifmap
@@ -297,34 +301,34 @@ class Topology
                     obj = @getSwitchObjbyName(ifmap.brname)
                     if obj?
                         obj.connect ifmap.veth , (res) =>
-                            util.log "Link connect result" + res
+                            log.info "Link connect result" + res
             #once all the ifmaps are processed, callback it.
             # TOdo : check whether async each to be used  for ifmap processing.
             callback()    
 
         ,(err) =>
             if err
-                util.log "createNodeLinks error occured " + err
+                log.error "createNodeLinks error occured " + err
                 cb(false)
             else
-                util.log "createNodeLinks  all are processed "
+                log.info "createNodeLinks  all are processed "
                 cb (true)
 
     #createSwitchLinks
     createSwitchLinks :(cb)->
         #travel each switch object and call connect tapinterfaces        
         async.each @switchobj, (sw,callback) =>
-            util.log "create a interconnection  switch Link"            
+            log.info "create a interconnection  switch Link"            
             sw.connectTapInterfaces (res)=>
-                console.log "result" , res
+                log.info "result" , res
             callback()    
 
         ,(err) =>
             if err
-                util.log "createNodeLinks error occured " + err
+                log.error "createNodeLinks error occured " + err
                 cb(false)
             else
-                util.log "createNodeLinks  all are processed "
+                log.info "createNodeLinks  all are processed "
                 cb (true)
 
 
@@ -336,10 +340,10 @@ class Topology
         #util.log "Topology create - topodata: " + JSON.stringify @tdata                             
         @config = extend {}, @tdata        
         @uuid = @tdata.id
-        util.log "topology config data " + JSON.stringify @config        
-        ipmgr = new IPManager(WAN_SUBNET,LAN_SUBNET, MGMT_SUBNET)
-
-        if @tdata.data.switches?
+        log.info "Topology - create - configdata " + JSON.stringify @config        
+        #ipmgr = new IPManager(WAN_SUBNET,LAN_SUBNET, MGMT_SUBNET)
+        ipmgr = new IPManager(@sysconfig.wansubnet,@sysconfig.lansubnet,@sysconfig.mgmtsubnet)
+        if @tdata.data.switches?            
             for sw in @tdata.data.switches   
                 obj = new switches(sw)
                 @switchobj.push obj
@@ -356,7 +360,7 @@ class Topology
                 temp = ipmgr.getFreeLanSubnet()  
                 for sw in val.switches         
                     #switch object
-                    console.log "processing the switch ",sw.name
+                    log.info "processing the switch ",sw.name
                     swobj = @getSwitchObjbyName(sw.name)
 
                     for n in  sw.connected_nodes
@@ -384,7 +388,7 @@ class Topology
                 #swname = "#{val.type}_#{val.connected_nodes[0].name}_#{val.connected_nodes[1].name}"
                 swname = "#{val.type}_sw#{sindex}"
                 sindex++
-                util.log "  wan swname is "+ swname
+                log.debug "  wan swname is "+ swname
                 obj = new switches
                     name : swname
                     ports: 2
@@ -393,7 +397,7 @@ class Topology
                 @switchobj.push obj
                 for n in  val.connected_nodes
                     console.log n.name
-                    util.log "updating wan interface for ", n.name
+                    log.info "updating wan interface for ", n.name
                     obj = @getNodeObjbyName(n.name)
                     if obj?
                         startaddress = temp.iparray[x++]
@@ -401,21 +405,21 @@ class Topology
 
         #Todo : Below functions (create) to be placed in asyn framework
         @createSwitches (res)=>
-            util.log "createswitches result" + res   
+            log.info "createswitches result" + res   
                      
             @createNodes (res)=>
-                util.log "topologycreation status" + res
+                log.info "topologycreation status" + res
                 #Check the sttatus and do provision
                 @createNodeLinks (res)=>
-                    util.log "create Nodelinks result " + res
+                    log.info "create Nodelinks result " + res
 
                     @createSwitchLinks (res)=>
-                        util.log "create Switchlinks result " + res
+                        log.info "create Switchlinks result " + res
 
                         @startSwitches (res)=>
-                            util.log "start switches result "  + res
+                            log.info "start switches result "  + res
 
-                            util.log "Topology creation completed"
+                            log.info "Topology creation completed"
         
                         #provision
                         #@provisionNodes (res)=>
@@ -444,17 +448,6 @@ class Topology
         "nodes" : nodestatus
         "switches":  switchstatus    
 
-    #below function is not used- to be removed
-    #vmstatus :(callback)->
-    #    arr = []
-    #    util.log "inside topoloy status function"
-    #    for n in @nodeobj
-    #        n.nodestatus (val) =>
-    #            arr.push val
-    #            callback arr
-    #Device specific rest api functions
-
-
 #============================================================================================================
 
 
@@ -462,8 +455,13 @@ class TopologyMaster
     constructor :(filename) ->
         @registry = new TopologyRegistry filename        
         @topologyObj = {}
-        
+        @sysconfig = {}
+        log.info "TopologyMaster - constructor - TopologyMaster object is created"  
 
+    configure : (config)->        
+        @sysconfig = extend {}, config
+        log.debug "Topologymaster system config ", @sysconfig
+        
     #Topology specific REST API functions
     list : (callback) ->
         return callback @registry.list()
@@ -472,14 +470,15 @@ class TopologyMaster
         try	            
             topodata = new TopologyData null, data    
         catch err
-            util.log "invalid schema" + err
+            log.error "TopologyMaster - create - invalid schema " + err
             return callback new Error "Invalid Input "
         finally				
-            util.log JSON.stringify topodata           
+            #log.info "TopologyMaster - create - topologyData " + JSON.stringify topodata 
 
         #finally create a project                    
-        util.log "in topology creation"
+        log.info "TopologyMaster - create - creating a new Topology with ",topodata
         obj = new Topology
+        obj.systemconfig @sysconfig
         obj.create topodata              
         @topologyObj[obj.uuid] = obj
         return callback @registry.add topodata                
@@ -598,17 +597,3 @@ class TopologyMaster
 
 #============================================================================================================
 module.exports =  new TopologyMaster '/tmp/topology.db'
-
-
-
-#Limitations ---  To be addressed later
-#1. vm name is used as given in the REST API.  Hence there is a  possibility that node (VM may exists in the same name)
-#  No check in the code,  User should take care of the vmname name .
-#There is a limitation in the lxcname and vm name ---  Name should not exceed 5 chars
-#2. Application LOST the topology details upon restarts, it lost the existing topology object .
-#  Application doesnt  and poll the status of the existing topology and get the object.
-#4.   some code cleanup - wherever mentioned in the code.
-#5.   config file to read the port number for ventbuilder, ventprovisioner, venetcontroller and default port.. ?
-#6. secure communication to vnetbuilder and provisioner
-
-

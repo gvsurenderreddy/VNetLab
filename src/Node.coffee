@@ -9,6 +9,13 @@ async = require 'async'
 vmctrl = require('./builder/vmCtrl')
 
 
+log = require('./utils/logger').getLogger()
+log.info "Node - Logger test message"
+
+#global parameter
+#config = require('./app').config
+#log = require('./app').log
+
 #utility functions 
 #Todo:  Not scalable....To be modified
 #HWADDR_PREFIX = "00:16:3e:5a:55:"
@@ -29,7 +36,7 @@ class node
         @config.ifmap = @ifmap        
         @statistics = {}
         @status = {}
-        console.log "inside node creation", @config
+        log.debug "inside node creation", @config
 
    
     addLanInterface :(brname, ipaddress, subnetmask, gateway, characterstics) ->         
@@ -43,6 +50,7 @@ class node
             "type":"lan"
             "veth" : "#{@config.name}_veth#{@ifindex}"
             "config": characterstics
+        log.debug "lan interface ",interf
         @ifindex++
         @ifmap.push  interf
 
@@ -58,7 +66,7 @@ class node
             "type":"wan"
             "veth" : "#{@config.name}_veth#{@ifindex}"
             "config": characterstics
-        console.log "waninterface " , interf
+        log.debug "waninterface " , interf
         @ifindex++
         @ifmap.push  interf
 
@@ -69,42 +77,46 @@ class node
             "ipaddress": ipaddress
             "netmask" : subnetmask                
             "type":"mgmt"
+        log.debug "mgmt interface",interf
         @ifmap.push  interf
-        console.log @ifmap
+        #console.log @ifmap
 
     create : (callback)->
-        console.log "createing node" + JSON.stringify @config       
+        log.info "createing node " + JSON.stringify @config
         vmctrl.create @config, (result) =>
             @uuid = result.id
             @config.id = @uuid
             @status.result = result.status
             @status.result = result.reason if result.reason?
-            console.log result
+            log.info "node creation result ",result
             callback result
     start : (callback)->
+        log.info "starting a node " , @config.name
         vmctrl.start @uuid, (result) =>
-            console.log result
+            log.info "node start result " , result
             callback result
     stop : (callback)->
+        log.info "stopping a node " , @config.name
         vmctrl.stop @uuid, (result) =>
-            console.log result
+            log.info "node stop result " , result            
             callback result
     trace : (callback)->
         vmctrl.packettrace @uuid, (res) =>
-            console.log res
-            @send res    
+            log.info "node packettrace result " , res            
+            callback res    
     del : (callback)->
+        log.info "node deleting  " , @config.name
         vmctrl.del @uuid, (res) =>
-            console.log res
-            @send res    
+            log.info "node del result " , res            
+            callback res    
     getstatus : (callback)->
-        console.log "getstatus called",@uuid
+        log.info "getstatus called",@uuid
         vmctrl.get @uuid, (result) =>
-            console.log result
+            log.info "node getstatus result " , result
             callback result
     getrunningstatus : (callback)->
         vmctrl.status @params.id, (res) =>
-            console.log res
+            log.info "node running status result " ,  res
             callback res  
 
     get : () ->
