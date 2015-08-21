@@ -19,18 +19,18 @@ class switches
         log.info "Switches - constructor -  new switch object created " + JSON.stringify @config
         
     create: (callback)->
-        log.info "Switches -  creating a switch with config ", @config
+        log.info "Switches -  creating a switch with config " + JSON.stringify @config
         switchctrl.create @config, (res) =>
             #console.log "post switch response" +res    
-            log.info "Switches - switch creation result ", res
+            log.info "Switches - switch creation result " + JSON.stringify res
             @uuid = res.id 
             callback res
 
     del: (callback)->
-        log.info "Switches - deleting a switch ", @config
+        log.info "Switches - deleting a switch " + JSON.stringify  @config
         switchctrl.del @uuid, (res) =>
             #console.log res
-            log.info "Switches -  switch  deletion result ", res
+            log.info "Switches -  switch  deletion result " + res
             callback res    
 
     get:()->
@@ -39,16 +39,16 @@ class switches
         "status":@status
         "statistics":@statistics
     stop:()->
-        log.info "Switches -   stoping a switch ", @config
+        log.info "Switches -   stoping a switch ", + JSON.stringify config
         switchctrl.stop @uuid, (res) =>
-            log.info "Switches - switch stop result ", res
+            log.info "Switches - switch stop result " + JSON.stringify res
             #console.log res
             callback res                  
 
     start:()->
-        log.info "Switches -  starting a switch ", @config
+        log.info "Switches -  starting a switch ", + JSON.stringify  @config
         switchctrl.start @uuid, (res) =>
-            log.info "Switches -   switch start result ", res
+            log.info "Switches -   switch start result " + JSON.stringify res
             #console.log res
             callback res                  
 
@@ -57,19 +57,19 @@ class switches
             "ifname": ifname              
         log.info "Switches -  connecting a interface  #{ifname} in switch #{@config.name}"
         switchctrl.addInterface @uuid, val, (res) =>
-            log.info "Switches - connect-  interface  #{ifname} connection result ",res
+            log.info "Switches - connect-  interface  #{ifname} connection result " + JSON.stringify res
             #console.log res
             callback res    
 
     createTapInterfaces:(ifname1,ifname2)->
         log.info "Switches - createTapInterfaces - input  #{ifname1}   #{ifname2}"
         result = switchctrl.CreateTapInterfaces ifname1, ifname2
-        log.info "Switches - createTapInterfaces - result ",result
+        log.info "Switches - createTapInterfaces - result " + JSON.stringify result
         return result
     
     addTapInterface:(ifname)->
         @tapifs.push ifname if ifname?
-        log.info "Switches - addTapInterface - ifname ",ifname
+        log.info "Switches - addTapInterface - ifname " + ifname
         return
 
     connectTapInterfaces:(callback)->

@@ -46,6 +46,7 @@ class SwitchData extends StormData
             name: {type:"string", required:true}                       
             type:{ type: "string", required: true}
             make: { type: "string", required: false}           	
+            controller: { type: "string", required: false}
             
     constructor: (id, data) ->
         super id, data, Schema
@@ -131,8 +132,13 @@ class SwitchBuilder
 		return callback new Error "Switch details not found in DB" unless sdata?
 		if sdata.data.make is "openvswitch"
 			bridge  = ovs
+			if sdata.data.controller?
+				bridge.setController sdata.data.name, sdata.data.controller, (result) =>
+					util.log.log result
 		else
 			bridge  = brctl
+
+
 
 		bridge.enableBridge sdata.data.name, (result) =>
 			util.log "enableBridge" + result			
@@ -140,7 +146,7 @@ class SwitchBuilder
 				sdata.data.status = "failed"
 				sdata.data.reason = "failed to start"
 			else
-				sdata.data.status = "started"
+				sdata.data.status = "started"				
 			@registry.update sdata.id , sdata
 			return callback 
 				"id" : sdata.id

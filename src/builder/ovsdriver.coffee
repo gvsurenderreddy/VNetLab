@@ -36,9 +36,14 @@ class BridgeControl
 		@execute command,(result) =>
 			callback result
     
+	setController : (bridgename , controllerip, callback)->
+		command = "ovs-vsctl set-controller #{bridgename} #{controllerip}"
+		@execute command,(result) =>
+			callback result
+
 	deleteBridge : (bridgename, callback) ->
 		@disableBridge bridgename, (result)=>
-			command = "brctl delbr #{bridgename}"
+			command = "ovs-vsctl del-br #{bridgename}"
 			@execute command,(result) =>
 				callback result
 

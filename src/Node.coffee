@@ -36,7 +36,7 @@ class node
         @config.ifmap = @ifmap        
         @statistics = {}
         @status = {}
-        log.debug "inside node creation", @config
+        log.debug "inside node creation",  + JSON.stringify  @config
 
    
     addLanInterface :(brname, ipaddress, subnetmask, gateway, characterstics) ->         
@@ -50,12 +50,12 @@ class node
             "type":"lan"
             "veth" : "#{@config.name}_veth#{@ifindex}"
             "config": characterstics
-        log.debug "lan interface ",interf
+        log.debug "lan interface " + JSON.stringify interf
         @ifindex++
         @ifmap.push  interf
 
     addWanInterface :(brname, ipaddress, subnetmask, gateway , characterstics) ->         
-        console.log "inside addWanInterface function"
+        #console.log "inside addWanInterface function"
         interf =
             "ifname" : "eth#{@ifindex}"
             "hwAddress" : getHwAddress()
@@ -66,7 +66,7 @@ class node
             "type":"wan"
             "veth" : "#{@config.name}_veth#{@ifindex}"
             "config": characterstics
-        log.debug "waninterface " , interf
+        log.debug "waninterface " + JSON.stringify  interf
         @ifindex++
         @ifmap.push  interf
 
@@ -77,7 +77,7 @@ class node
             "ipaddress": ipaddress
             "netmask" : subnetmask                
             "type":"mgmt"
-        log.debug "mgmt interface",interf
+        log.debug "mgmt interface" + JSON.stringify interf
         @ifmap.push  interf
         #console.log @ifmap
 
@@ -88,35 +88,35 @@ class node
             @config.id = @uuid
             @status.result = result.status
             @status.result = result.reason if result.reason?
-            log.info "node creation result ",result
+            log.info "node creation result " + result
             callback result
     start : (callback)->
-        log.info "starting a node " , @config.name
+        log.info "starting a node "  +  @config.name
         vmctrl.start @uuid, (result) =>
-            log.info "node start result " , result
+            log.info "node start result " + result
             callback result
     stop : (callback)->
-        log.info "stopping a node " , @config.name
+        log.info "stopping a node " + @config.name
         vmctrl.stop @uuid, (result) =>
-            log.info "node stop result " , result            
+            log.info "node stop result " + result            
             callback result
     trace : (callback)->
         vmctrl.packettrace @uuid, (res) =>
-            log.info "node packettrace result " , res            
+            log.info "node packettrace result " + res            
             callback res    
     del : (callback)->
-        log.info "node deleting  " , @config.name
+        log.info "node deleting  " + @config.name
         vmctrl.del @uuid, (res) =>
             log.info "node del result " , res            
             callback res    
     getstatus : (callback)->
-        log.info "getstatus called",@uuid
+        log.info "getstatus called" + @uuid
         vmctrl.get @uuid, (result) =>
-            log.info "node getstatus result " , result
+            log.info "node getstatus result " + result
             callback result
     getrunningstatus : (callback)->
         vmctrl.status @params.id, (res) =>
-            log.info "node running status result " ,  res
+            log.info "node running status result " +  res
             callback res  
 
     get : () ->

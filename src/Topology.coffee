@@ -27,7 +27,7 @@ log.info "Topology Logger test message"
 class TopologyRegistry extends StormRegistry
     constructor: (filename) ->
         @on 'load', (key,val) ->
-            log.debug "restoring #{key} with:",val
+            #log.debug "restoring #{key} with:",val
             entry = new TopologyData key,val
             if entry?
                 entry.saved = true
@@ -168,7 +168,7 @@ class Topology
                 callback()
         ,(err) =>
             if err
-                log.error "Error occured on createswitches function " + err
+                log.error "Error occured on createswitches function " + JSON.stringify err
                 cb(false)
             else
                 log.info "createswitches completed "
@@ -184,7 +184,7 @@ class Topology
             callback()
         ,(err) =>
             if err
-                log.error "error occured " + err
+                log.error "error occured " + JSON.stringify err
                 cb(false)
             else
                 log.info "startswitches all are processed "
@@ -205,7 +205,7 @@ class Topology
             log.info "createing a node "
             
             n.create (result) =>   
-                log.info "create node result " ,result
+                log.info "create node result " + JSON.stringify result
                 #check continuosly till we get the creation status value 
                 create = false
                 async.until(
@@ -217,7 +217,7 @@ class Topology
                             unless result.data.status is "creation-in-progress"
                                 create = true
                                 n.start (result)=>                    
-                                    log.info "node start #{n.uuid} result " + result
+                                    log.info "node start #{n.uuid} result " + JSON.stringify result
                                     return
                             setTimeout(repeat, 30000);
                     (err)->                        
@@ -238,11 +238,11 @@ class Topology
             log.info "provisioning a node #{n.uuid}"
             n.provision (result) =>   
                 #Todo : Result to be checked.
-                log.info "provision node #{n.uuid} result  " + result
+                log.info "provision node #{n.uuid} result  " + JSON.stringify  result
                 callback()
         ,(err) =>
             if err
-                log.error "ProvisionNodes error occured " + err
+                log.error "ProvisionNodes error occured " + JSON.stringify err
                 cb(false)
             else
                 log.info "provisionNodes all are processed "
@@ -261,7 +261,7 @@ class Topology
                 callback()
         ,(err) =>
             if err
-                log.error  "destroy nodes error occured " + err
+                log.error  "destroy nodes error occured " + JSON.stringify err
                 return false
             else
                 log.info "destroyNodes all are processed " + @tmparray
@@ -280,7 +280,7 @@ class Topology
                 callback()
         ,(err) =>
             if err
-                log.error "Destroy switches error occured " + err
+                log.error "Destroy switches error occured " +  JSON.stringify err
                 return false
             else
                 log.info "Destroy Switches all are processed " + @tmparray
@@ -307,7 +307,7 @@ class Topology
 
         ,(err) =>
             if err
-                log.error "createNodeLinks error occured " + err
+                log.error "createNodeLinks error occured " + JSON.stringify err
                 cb(false)
             else
                 log.info "createNodeLinks  all are processed "
@@ -324,13 +324,11 @@ class Topology
 
         ,(err) =>
             if err
-                log.error "createSwitchLinks error occured " + err
+                log.error "createSwitchLinks error occured " + JSON.stringify err
                 cb(false)
             else
                 log.info "createSwitchLinks  all are processed "
                 cb (true)
-
-
 
 
 
@@ -345,6 +343,7 @@ class Topology
         if @tdata.data.switches?            
             for sw in @tdata.data.switches   
                 sw.make = @sysconfig.switchtype
+                sw.controller = @sysconfig.controller
                 obj = new switches(sw)
                 @switchobj.push obj
 
@@ -394,6 +393,7 @@ class Topology
                     ports: 2
                     type : val.type
                     make : @sysconfig.switchtype
+                    controller : @sysconfig.controller
                 @switchobj.push obj
                 for n in  val.connected_nodes
                     console.log n.name
@@ -461,7 +461,7 @@ class TopologyMaster
 
     configure : (config)->        
         @sysconfig = extend {}, config
-        log.debug "Topologymaster system config ", @sysconfig
+        log.debug "Topologymaster system config " + JSON.stringify @sysconfig
         
     #Topology specific REST API functions
     list : (callback) ->
@@ -471,13 +471,13 @@ class TopologyMaster
         try	            
             topodata = new TopologyData null, data    
         catch err
-            log.error "TopologyMaster - create - invalid schema " + err
+            log.error "TopologyMaster - create - invalid schema " + JSON.stringify err
             return callback new Error "Invalid Input "
         finally				
             #log.info "TopologyMaster - create - topologyData " + JSON.stringify topodata 
 
         #finally create a project                    
-        log.info "TopologyMaster - create - creating a new Topology with ",topodata
+        log.info "TopologyMaster - create - creating a new Topology with " + JSON.stringify topodata
         obj = new Topology
         obj.systemconfig @sysconfig
         obj.create topodata              
